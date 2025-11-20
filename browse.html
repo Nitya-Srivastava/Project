@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Browse Notes — Study Notion</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Manrope:wght@600;800&display=swap"
+    rel="stylesheet">
+  <style>
+    <script> // Simple login check
+
+    if ( !localStorage.getItem('token')) {
+      alert('Please log in first!');
+      window.location.href='login.html';
+    }
+
+    </script>
+
+    /* Base Styles */
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #fafafa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      color: #4a90e2;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+
+    .brand:hover {
+      transform: scale(1.05);
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      min-width: 220px;
+      font-size: 1rem;
+    }
+
+    .btn.primary {
+      background-color: #4a90e2;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .btn.primary:hover {
+      background-color: #357ABD;
+      transform: translateY(-2px);
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
+    }
+
+    aside.panel {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .chip,
+    .small-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(74, 144, 226, 0.1);
+      color: #4a90e2;
+      margin: 4px 4px 4px 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .chip.active {
+      background: #4a90e2;
+      color: white;
+    }
+
+    .chip:hover,
+    .small-chip:hover {
+      transform: translateY(-2px);
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: white;
+      font-size: 1rem;
+    }
+
+    .results-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .meta {
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 14px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background-color: #4a90e2;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #222;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: #555;
+    }
+
+    /* Responsive */
+    @media (max-width:980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width:560px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .thumb {
+        width: 48px;
+        height: 48px;
+      }
+
+      .search {
+        min-width: 120px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <a class="brand" href="index.html">Study Notion</a>
+      <div class="controls">
+        <input id="q" class="search" placeholder="Search by title, subject or tag" aria-label="Search notes" />
+        <button id="newBtn" class="btn primary">Upload</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel" aria-label="Filters">
+        <div>
+          <div class="filter-title">Subjects</div>
+          <div id="subjects"></div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="filter-title">Popular tags <button id="clearFilters" class="clear">Clear</button></div>
+          <div id="tags"></div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="filter-title">Sort by</div>
+          <select id="sort">
+            <option value="new">Newest</option>
+            <option value="size">Size (small → large)</option>
+            <option value="alpha">A → Z</option>
+          </select>
+        </div>
+      </aside>
+
+      <section>
+        <div class="results-head">
+          <div style="font-weight:800">Browse notes</div>
+          <div id="resultsCount" class="meta"></div>
+        </div>
+
+        <div id="grid" class="grid"></div>
+        <div id="empty" class="empty" style="display:none">No notes found. Try adjusting filters or search.</div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Sample data set
+    const DATA = [
+      { id: 1, title: 'Calculus Quick Facts', subject: 'Math', tags: ['calculus'], size: 2100, format: 'PDF', date: '2025-11-01' },
+      { id: 2, title: 'Organic Mechanisms', subject: 'Chemistry', tags: ['organic'], size: 800, format: 'IMG', date: '2025-10-26' },
+      { id: 5, title: 'WW2 Summary Notes', subject: 'History', tags: ['summary'], size: 450, format: 'DOCX', date: '2025-07-18' },
+      { id: 6, title: 'Thermodynamics Cheatsheet', subject: 'Physics', tags: ['thermo'], size: 980, format: 'PDF', date: '2025-11-03' },
+      { id: 7, title: 'Discrete Math Essentials', subject: 'Math', tags: ['discrete'], size: 1200, format: 'PDF', date: '2025-10-05' },
+    ];
+
+    let state = { q: '', subject: null, tag: null, sort: 'new' };
+
+    const subjectsEl = document.getElementById('subjects');
+    const tagsEl = document.getElementById('tags');
+    const gridEl = document.getElementById('grid');
+    const qEl = document.getElementById('q');
+    const sortEl = document.getElementById('sort');
+    const resultsCount = document.getElementById('resultsCount');
+    const emptyEl = document.getElementById('empty');
+    const clearFilters = document.getElementById('clearFilters');
+    const newBtn = document.getElementById('newBtn');
+
+    const subjects = Array.from(new Set(DATA.map(d => d.subject))).sort();
+    const allTags = Array.from(new Set(DATA.flatMap(d => d.tags))).sort();
+
+    function renderFilters() {
+      subjectsEl.innerHTML = '';
+      subjects.forEach(s => {
+        const el = document.createElement('button');
+        el.className = 'chip' + (state.subject === s ? ' active' : '');
+        el.textContent = s;
+        el.addEventListener('click', () => { state.subject = state.subject === s ? null : s; render(); });
+        subjectsEl.appendChild(el);
+      });
+
+      tagsEl.innerHTML = '';
+      allTags.forEach(t => {
+        const el = document.createElement('button');
+        el.className = 'chip' + (state.tag === t ? ' active' : '');
+        el.textContent = t;
+        el.addEventListener('click', () => { state.tag = state.tag === t ? null : t; render(); });
+        tagsEl.appendChild(el);
+      });
+    }
+
+    function match(item) {
+      const q = state.q.trim().toLowerCase();
+      if (state.subject && item.subject !== state.subject) return false;
+      if (state.tag && !item.tags.includes(state.tag)) return false;
+      if (q) {
+        const inTitle = item.title.toLowerCase().includes(q);
+        const inTags = item.tags.join(' ').toLowerCase().includes(q);
+        const inSubject = item.subject.toLowerCase().includes(q);
+        if (!(inTitle || inTags || inSubject)) return false;
+      }
+      return true;
+    }
+
+    function sortData(arr) {
+      if (state.sort === 'new') return arr.sort((a, b) => new Date(b.date) - new Date(a.date));
+      if (state.sort === 'size') return arr.sort((a, b) => a.size - b.size);
+      if (state.sort === 'alpha') return arr.sort((a, b) => a.title.localeCompare(b.title));
+      return arr;
+    }
+
+    function render() {
+      renderFilters();
+      let results = DATA.filter(match);
+      results = sortData(results.slice());
+      gridEl.innerHTML = '';
+      resultsCount.textContent = `${results.length} results`;
+      if (!results.length) {
+        emptyEl.style.display = 'block';
+      } else {
+        emptyEl.style.display = 'none';
+        results.forEach(item => {
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="card-top">
+              <div class="thumb">${escapeHtml(item.format)}</div>
+              <div style="flex:1">
+                <div class="title">${escapeHtml(item.title)}</div>
+                <div class="meta">${escapeHtml(item.subject)} · ${(item.size / 1024).toFixed(1)} MB · ${escapeHtml(item.date)}</div>
+              </div>
+            </div>
+            <div class="tags">${item.tags.map(t => `<span class="small-chip">${escapeHtml(t)}</span>`).join('')}</div>
+          `;
+          card.addEventListener('click', () => previewItem(item));
+          gridEl.appendChild(card);
+        });
+      }
+    }
+
+    function previewItem(item) {
+      const ok = confirm(`${item.title}\n\nSubject: ${item.subject}\nTags: ${item.tags.join(', ')}\nSize: ${(item.size / 1024).toFixed(1)} MB\n\nOpen/download this file? (demo)`);
+      if (ok) alert('Simulated download — implement backend or preview feature.');
+    }
+
+    qEl.addEventListener('input', () => { state.q = qEl.value; render(); });
+    sortEl.addEventListener('change', () => { state.sort = sortEl.value; render(); });
+    clearFilters.addEventListener('click', () => { state.subject = null; state.tag = null; render(); });
+    newBtn.addEventListener('click', () => location.href = 'upload.html');
+
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    render();
+  </script>
+</body>
+
+</html>
